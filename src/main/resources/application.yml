@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    hikari:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://localhost:3306/dev_grill?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      password: FerChrys1920
+      username: dev_grill_admin
+  jpa:
+    show-sql: true
+server:
+  port: 8080
