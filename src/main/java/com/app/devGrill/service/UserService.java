@@ -1,6 +1,5 @@
 package com.app.devGrill.service;
 
-import com.app.devGrill.entity.Administrator;
 import com.app.devGrill.entity.OrderRequest;
 import com.app.devGrill.entity.User;
 import com.app.devGrill.repository.OrderRequestRepository;
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.app.devGrill.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -53,9 +51,19 @@ public class UserService {
         userRepository.deleteById(email);
     }
 
-    @PutMapping("/update-admin/{email}")
-    public void updateAdmin(@PathVariable String email, @RequestBody User user) {
+    @PutMapping("/update-user/{email}")
+    public User updateUser(@PathVariable String email, @RequestBody User user) {
+        User userSavedDB = userRepository.findByEmail(email);
 
+        if(userSavedDB != null) {
+
+            if(!user.getName().isEmpty()) userSavedDB.setName(user.getName());
+            if(!user.getLastName().isEmpty()) userSavedDB.setLastName(user.getLastName());
+            if(!user.getPassword().isEmpty()) userSavedDB.setPassword(user.getPassword());
+            if(user.getNit() != null) userSavedDB.setNit(user.getNit());
+        }
+
+        return  userRepository.save(userSavedDB);
     }
 
 }
