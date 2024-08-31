@@ -1,6 +1,5 @@
 package com.app.devGrill.service;
 
-import com.app.devGrill.entity.Administrator;
 import com.app.devGrill.entity.NewsItem;
 import com.app.devGrill.repository.NewsItemRepository;
 import jakarta.persistence.EntityNotFoundException;

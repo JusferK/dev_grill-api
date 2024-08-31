@@ -1,6 +1,5 @@
 package com.app.devGrill.service;
 
-import com.app.devGrill.entity.Administrator;
 import com.app.devGrill.entity.Ingredient;
 import com.app.devGrill.entity.Menu;
 import com.app.devGrill.entity.MenuIngredientList;

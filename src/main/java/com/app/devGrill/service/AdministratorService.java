@@ -4,8 +4,6 @@ import com.app.devGrill.entity.Administrator;
 import com.app.devGrill.repository.AdministratorRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
