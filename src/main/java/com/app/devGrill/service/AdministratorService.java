@@ -35,7 +35,7 @@ public class AdministratorService {
     public <T> Object adminLogin(@PathVariable String user, @PathVariable String password) {
         Administrator loginAttempt = administratorRepository.findByUserAndPassword(user, password);
 
-        if(loginAttempt != null) {
+        if(loginAttempt != null && loginAttempt.getUser().equals(user) && loginAttempt.getPassword().equals(password)) {
             return loginAttempt;
         } else {
             return false;
