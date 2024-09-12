@@ -4,9 +4,12 @@ import com.app.devGrill.entity.*;
 import com.app.devGrill.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -36,10 +39,14 @@ public class OrderRequestService {
     }
 
     @GetMapping("/find-orders/{parameter}")
-    public <T> List<OrderRequest> findSpecificOrders(@PathVariable T parameter) {
+    public <T> Object findSpecificOrders(@PathVariable T parameter) {
+
         boolean isNumber = true;
         String parameterToString = null;
         Integer orderidOrNit = null;
+        boolean wasFound = false;
+
+        OrderRequest orderRequestToReturned = null;
 
         try {
             parameterToString = (String) parameter;
@@ -48,65 +55,106 @@ public class OrderRequestService {
             isNumber = false;
         }
 
-
         if(isNumber) {
-            List<OrderRequest> listByOrderId = orderRequestRepository.findByIdOrderRequest(orderidOrNit);
+            OrderRequest ByOrderId = orderRequestRepository.findById(orderidOrNit)
+                    .orElse(null);
             User foundUser = userRepository.findByNit(orderidOrNit);
             String email = null;
 
             if(foundUser != null) email = foundUser.getEmail();
-            List<OrderRequest> listByNit = orderRequestRepository.findByUserEmail(email);
+            Optional<OrderRequest> pivot = orderRequestRepository.findFirstByUserEmail(email);
 
-            return foundUser != null ? listByNit : listByOrderId;
+            OrderRequest ByNit = null;
+
+            if(pivot.isPresent()) {
+                ByNit = pivot.get();
+            }
+
+            if(foundUser != null) {
+                orderRequestToReturned = ByNit;
+                wasFound = true;
+            } else if(ByOrderId != null) {
+                orderRequestToReturned = ByOrderId;
+                wasFound = true;
+            }
         } else {
             User foundUser = userRepository.findByName(parameterToString);
-            return orderRequestRepository.findByUserEmail(foundUser.getEmail());
+            if(foundUser != null) {
+                Optional<OrderRequest> pivot = orderRequestRepository.findFirstByUserEmail(foundUser.getEmail());
+                if(pivot.isPresent()) {
+                    orderRequestToReturned = pivot.get();
+                    wasFound = true;
+                }
+            }
         }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Exception");
+        response.put("message", "Order not found");
+        response.put("status", HttpStatus.NOT_FOUND.value());
+
+        return wasFound ? orderRequestToReturned : new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/new-order")
     public <T> Object newOrder(@RequestBody OrderRequest orderRequest) {
         User userPlacedOrder = userRepository.findByEmail(orderRequest.getUserEmail());
-        boolean[] orderCanBeProcess = {false};
+        ArrayList<Boolean> orderCanBeProcess = new ArrayList<>();
+        boolean finalOrderCanBeProcess = false;
         ResponseEntity<Map> responseEntity = null;
         OrderRequest orderToBeReturn = null;
+        ArrayList<MenuOrder> bag = new ArrayList<>();
 
         if(userPlacedOrder != null && !orderRequest.getMenuOrderList().isEmpty()) {
-            OrderRequest orderSavedDB = orderRequestRepository.save(orderRequest);
-            int[] i = {0};
-            orderSavedDB.getMenuOrderList().forEach((menuOrder) -> {
+            OrderRequest[] orderSavedDB = new OrderRequest[1];
+            orderRequest.getMenuOrderList().forEach((menuOrder) -> {
 
                 ArrayList<Boolean> checkAvailability = new ArrayList<>();
-                Menu findMenu = menuRepository.findById(menuOrder.getMenuIdMenu())
-                        .orElseThrow(() -> new EntityNotFoundException("menu not found"));
 
-                findMenu.getMenuIngredientListList().forEach(menuIngredientListRecord -> {
+                Optional<Menu> findMenu = menuRepository.findById(menuOrder.getMenuIdMenu());
 
-                    Ingredient findIngredient = ingredientRepository.findById(menuIngredientListRecord.getIdIngredient())
-                            .orElseThrow(() -> new EntityNotFoundException("no ingredient found"));
+                if(findMenu.isPresent()) {
+                    Menu menuToIterate = findMenu.get();
 
-                    int stockToBeConsumed = menuOrder.getQuantity() * menuIngredientListRecord.getQuantity();
+                    menuToIterate.getMenuIngredientListList().forEach(menuIngredientListRecord -> {
 
-                    if (stockToBeConsumed > findIngredient.getStock()) {
-                        checkAvailability.add(false);
-                    } else if(findIngredient.getStock() > stockToBeConsumed) {
-                        checkAvailability.add(true);
-                    }
-                });
+                        Ingredient findIngredient = ingredientRepository.findById(menuIngredientListRecord.getIdIngredient())
+                                .orElseThrow(() -> new EntityNotFoundException("no ingredient found"));
+
+                        int stockToBeConsumed = menuOrder.getQuantity() * menuIngredientListRecord.getQuantity();
+
+                        if (stockToBeConsumed > findIngredient.getStock()) {
+                            checkAvailability.add(false);
+                        } else if(findIngredient.getStock() > stockToBeConsumed) {
+                            checkAvailability.add(true);
+                        }
+                    });
+                } else {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Menu not found"));
+                }
 
                 if(!checkAvailability.contains(false)) {
-                    orderCanBeProcess[0] = true;
-                    menuOrder.setOrderRequestIdOrderRequest(orderSavedDB.getIdOrderRequest());
-                    MenuOrder recordSaved = menuOrderRepository.save(menuOrder);
-                    orderSavedDB.getMenuOrderList().set(i[0], recordSaved);
-                    i[0]++;
+                    orderCanBeProcess.add(true);
+                    bag.add(menuOrder);
+                } else {
+                    orderCanBeProcess.add(false);
                 }
             });
 
-            if(orderCanBeProcess[0]) {
-                userPlacedOrder.getOrderRequestList().add(orderSavedDB);
+            if(!orderCanBeProcess.contains(false)) {
+                finalOrderCanBeProcess = true;
+                orderSavedDB[0] = orderRequestRepository.save(orderRequest);
+                int[] i = {0};
+                bag.forEach((menuOrder) -> {
+                    menuOrder.setOrderRequestIdOrderRequest(orderSavedDB[0].getIdOrderRequest());
+                    MenuOrder recordSaved = menuOrderRepository.save(menuOrder);
+                    orderSavedDB[0].getMenuOrderList().set(i[0], recordSaved);
+                    i[0]++;
+                });
+
+                userPlacedOrder.getOrderRequestList().add(orderSavedDB[0]);
                 userRepository.save(userPlacedOrder);
-                orderToBeReturn = orderSavedDB;
+                orderToBeReturn = orderSavedDB[0];
             } else {
                 Map<String, Object> response = new HashMap<>();
                 response.put("error", "Exception");
@@ -124,7 +172,7 @@ public class OrderRequestService {
             responseEntity = new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
-        return orderCanBeProcess[0] ? orderToBeReturn : responseEntity;
+        return finalOrderCanBeProcess ? orderToBeReturn : responseEntity;
     }
 
     @DeleteMapping("/delete-order/{idOrderRequest}")

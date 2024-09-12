@@ -31,6 +31,11 @@ public class IngredientService {
         return ingredientRepository.findAll();
     }
 
+    @GetMapping("/get-ingredient/{idIngredient}")
+    public Ingredient getIngredient(@PathVariable Integer idIngredient) {
+        return ingredientRepository.findById(idIngredient).orElseThrow(() -> new EntityNotFoundException("Ingredient not found"));
+    }
+
     @PostMapping("/new-ingredient")
     public <T> Object newIngredient(@RequestBody Ingredient ingredient) {
         Ingredient findIngredient = ingredientRepository.findByName(ingredient.getName());
