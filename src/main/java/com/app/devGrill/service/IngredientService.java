@@ -69,22 +69,25 @@ public class IngredientService {
                     Menu menuAssociatedIngredient = menuRepository.findById(record.getIdMenu())
                             .orElseThrow(() -> new EntityNotFoundException("menu not found"));
 
-                    if (!menuAssociatedIngredient.getIsAvailable()) {
-                        menuAssociatedIngredient.getMenuIngredientListList().forEach(recordInList -> {
-                            Ingredient ingredientFound = ingredientRepository.findById(recordInList.getIdIngredient())
-                                    .orElseThrow(() -> new EntityNotFoundException("ingredient not found"));
+                    menuAssociatedIngredient.getMenuIngredientListList().forEach(recordInList -> {
+                        Ingredient ingredientFound = ingredientRepository.findById(recordInList.getIdIngredient())
+                                .orElseThrow(() -> new EntityNotFoundException("ingredient not found"));
 
-                            if (ingredientFound.getStock() < 1 || recordInList.getQuantity() > ingredientFound.getStock()) {
-                                checkMenuAvailability.add(false);
-                            } else if (ingredient.getStock() >= 1 && ingredient.getStock() >= recordInList.getQuantity()) {
-                                checkMenuAvailability.add(true);
-                            }
-                        });
-
-                        if (!checkMenuAvailability.contains(false)) {
-                            menuAssociatedIngredient.setIsAvailable(true);
-                            menuRepository.save(menuAssociatedIngredient);
+                        if (ingredientFound.getStock() < 1 || recordInList.getQuantity() > ingredientFound.getStock()) {
+                            checkMenuAvailability.add(false);
+                        } else if (ingredientFound.getStock() >= 1 && ingredientFound.getStock() >= recordInList.getQuantity()) {
+                            checkMenuAvailability.add(true);
                         }
+                    });
+
+                    System.out.println(checkMenuAvailability);
+
+                    if (!checkMenuAvailability.contains(false)) {
+                        menuAssociatedIngredient.setIsAvailable(true);
+                        menuRepository.save(menuAssociatedIngredient);
+                    } else {
+                        menuAssociatedIngredient.setIsAvailable(false);
+                        menuRepository.save(menuAssociatedIngredient);
                     }
                 });
             }
@@ -95,7 +98,6 @@ public class IngredientService {
             boolean namesAreEqual = ingredientById.getName().equalsIgnoreCase(ingredient.getName());
 
             if (namesAreEqual) {
-
                 ingredientById.setStock(ingredient.getStock());
                 ingredientById.setName(ingredient.getName());
                 ingredientToReturn = ingredientRepository.save(ingredientById);
@@ -105,22 +107,23 @@ public class IngredientService {
                     Menu menuAssociatedIngredient = menuRepository.findById(record.getIdMenu())
                             .orElseThrow(() -> new EntityNotFoundException("menu not found"));
 
-                    if (!menuAssociatedIngredient.getIsAvailable()) {
-                        menuAssociatedIngredient.getMenuIngredientListList().forEach(recordInList -> {
-                            Ingredient ingredientFound = ingredientRepository.findById(recordInList.getIdIngredient())
-                                    .orElseThrow(() -> new EntityNotFoundException("ingredient not found"));
+                    menuAssociatedIngredient.getMenuIngredientListList().forEach(recordInList -> {
+                        Ingredient ingredientFound = ingredientRepository.findById(recordInList.getIdIngredient())
+                                .orElseThrow(() -> new EntityNotFoundException("ingredient not found"));
 
-                            if (ingredientFound.getStock() < 1 || recordInList.getQuantity() > ingredientFound.getStock()) {
-                                checkMenuAvailability.add(false);
-                            } else if (ingredient.getStock() >= 1 && ingredient.getStock() >= recordInList.getQuantity()) {
-                                checkMenuAvailability.add(true);
-                            }
-                        });
-
-                        if (!checkMenuAvailability.contains(false)) {
-                            menuAssociatedIngredient.setIsAvailable(true);
-                            menuRepository.save(menuAssociatedIngredient);
+                        if (ingredientFound.getStock() < 1 || recordInList.getQuantity() > ingredientFound.getStock()) {
+                            checkMenuAvailability.add(false);
+                        } else if (ingredientFound.getStock() >= 1 && ingredientFound.getStock() >= recordInList.getQuantity()) {
+                            checkMenuAvailability.add(true);
                         }
+                    });
+
+                    if (!checkMenuAvailability.contains(false)) {
+                        menuAssociatedIngredient.setIsAvailable(true);
+                        menuRepository.save(menuAssociatedIngredient);
+                    } else {
+                        menuAssociatedIngredient.setIsAvailable(false);
+                        menuRepository.save(menuAssociatedIngredient);
                     }
                 });
             } else if (!namesAreEqual && findIngredientByName.getName().equalsIgnoreCase(ingredient.getName()) && ingredientById.getIdIngredient() != findIngredientByName.getIdIngredient()) {

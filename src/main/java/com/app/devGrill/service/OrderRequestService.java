@@ -114,6 +114,14 @@ public class OrderRequestService {
                 response.put("status", HttpStatus.BAD_REQUEST.value());
                 responseEntity = new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
             }
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", "Exception");
+            if(userPlacedOrder == null) response.put("message", "User not found");
+            if(orderRequest.getMenuOrderList().isEmpty()) response.put("message", "Order is empty");
+            if(userPlacedOrder == null && orderRequest.getMenuOrderList().isEmpty()) response.put("message","Request parameters are not met");
+            response.put("status", HttpStatus.BAD_REQUEST.value());
+            responseEntity = new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
 
         return orderCanBeProcess[0] ? orderToBeReturn : responseEntity;
