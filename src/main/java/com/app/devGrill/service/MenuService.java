@@ -11,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/menu")
@@ -91,6 +88,23 @@ public class MenuService {
             response.put("status", HttpStatus.BAD_REQUEST.value());
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/get-menu/{idMenu}")
+    public <T> Object getMenu(@PathVariable Integer idMenu) {
+
+        Optional<Menu> findMenu = menuRepository.findById(idMenu);
+
+        if(findMenu.isPresent()) {
+            return findMenu.get();
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", "Exception");
+            response.put("message", "Menu not found");
+            response.put("status", HttpStatus.NOT_FOUND.value());
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
     }
 
     @DeleteMapping("/delete-menu/{idMenu}")
