@@ -31,7 +31,7 @@ public class AdministratorService {
         administratorRepository.deleteById(idAdministrator);
     }
 
-    @GetMapping("/admin-login/{user}/{password}")
+    @PostMapping("/admin-login/{user}/{password}")
     public <T> Object adminLogin(@PathVariable String user, @PathVariable String password) {
         Administrator loginAttempt = administratorRepository.findByUserAndPassword(user, password);
 
