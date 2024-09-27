@@ -25,9 +25,9 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    @PostMapping("/login/{email}/{password}")
-    public <T> Object login(@PathVariable("email") String email, @PathVariable("password") String password) {
-        User userLogginAttempt = userRepository.findByEmailAndPassword(email, password);
+    @PostMapping("/login")
+    public <T> Object login(@RequestBody User user) {
+        User userLogginAttempt = userRepository.findByEmailAndPassword(user.getEmail(), user.getPassword());
 
         if(userLogginAttempt != null) {
             return userLogginAttempt;
