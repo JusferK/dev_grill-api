@@ -4,10 +4,14 @@ import com.app.devGrill.entity.OrderRequest;
 import com.app.devGrill.entity.User;
 import com.app.devGrill.repository.OrderRequestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.app.devGrill.repository.UserRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -42,8 +46,20 @@ public class UserService {
     }
 
     @PostMapping("/sign")
-    public User signIn(@RequestBody User user) {
-        return userRepository.save(user);
+    public <T> Object signIn(@RequestBody User user) {
+
+        User findUser = userRepository.findByEmail(user.getEmail());
+
+        if(findUser == null) {
+            return userRepository.save(user);
+        } else {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", "Exception");
+            response.put("message", "Email is already registered.");
+            response.put("status", HttpStatus.FOUND.value());
+            return new ResponseEntity<>(response, HttpStatus.FOUND);
+        }
+
     }
 
     @DeleteMapping("/delete-account/{email}")
@@ -51,12 +67,11 @@ public class UserService {
         userRepository.deleteById(email);
     }
 
-    @PutMapping("/update-user/{email}")
-    public User updateUser(@PathVariable String email, @RequestBody User user) {
-        User userSavedDB = userRepository.findByEmail(email);
+    @PutMapping("/update-user")
+    public User updateUser(@RequestBody User user) {
+        User userSavedDB = userRepository.findByEmail(user.getEmail());
 
         if(userSavedDB != null) {
-
             if(!user.getName().isEmpty()) userSavedDB.setName(user.getName());
             if(!user.getLastName().isEmpty()) userSavedDB.setLastName(user.getLastName());
             if(!user.getPassword().isEmpty()) userSavedDB.setPassword(user.getPassword());
