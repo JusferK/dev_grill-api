@@ -42,7 +42,7 @@ public class UserService {
 
     @GetMapping("/orders-made/{email}")
     public List<OrderRequest> getUserOrders(@PathVariable("email") String email) {
-        return orderRequestRepository.findByUserEmail(email);
+        return orderRequestRepository.findByUserEmailOrderByOrderDateTimeDesc(email);
     }
 
     @PostMapping("/sign")

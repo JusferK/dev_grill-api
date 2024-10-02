@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRequestRepository extends JpaRepository<OrderRequest, Integer> {
-    public List<OrderRequest> findByUserEmail(String email);
+    public List<OrderRequest> findByUserEmailOrderByOrderDateTimeDesc(String email);
     public Optional<OrderRequest> findFirstByUserEmail(String email);
 }
