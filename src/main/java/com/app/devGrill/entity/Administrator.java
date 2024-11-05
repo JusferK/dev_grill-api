@@ -24,6 +24,9 @@ public class Administrator implements Serializable {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "administrator_type_idadministrator_type")
+    private Integer administratorTypeIdAdministratorType;
+
     public Integer getIdAdministrator() {
         return idAdministrator;
     }
@@ -46,5 +49,13 @@ public class Administrator implements Serializable {
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public Integer getAdministratorTypeIdAdministratorType() {
+        return administratorTypeIdAdministratorType;
+    }
+
+    public void setAdministratorTypeIdAdministratorType(Integer administratorTypeIdAdministratorType) {
+        this.administratorTypeIdAdministratorType = administratorTypeIdAdministratorType;
     }
 }

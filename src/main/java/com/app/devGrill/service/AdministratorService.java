@@ -47,7 +47,11 @@ public class AdministratorService {
         Administrator adminSavedDB = administratorRepository.findById(idAdministrator)
                 .orElseThrow(() -> new EntityNotFoundException("admin account not found"));
 
+        System.out.println(admin.getAdministratorTypeIdAdministratorType());
+        System.out.println(adminSavedDB.getAdministratorTypeIdAdministratorType());
+
         if(!admin.getPassword().isEmpty()) adminSavedDB.setPassword(admin.getPassword());
+        if(adminSavedDB.getAdministratorTypeIdAdministratorType() != admin.getAdministratorTypeIdAdministratorType()) adminSavedDB.setAdministratorTypeIdAdministratorType(admin.getAdministratorTypeIdAdministratorType());
 
         return administratorRepository.save(adminSavedDB);
     }
